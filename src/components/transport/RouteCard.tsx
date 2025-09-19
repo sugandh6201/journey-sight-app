@@ -1,6 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bus, Clock } from "lucide-react";
 import { Route } from "@/data/mockData";
 
 interface RouteCardProps {
@@ -8,41 +6,38 @@ interface RouteCardProps {
   onClick: () => void;
 }
 
-export const RouteCard = ({ route, onClick }: RouteCardProps) => {
-  const getStatusColor = (status: Route['status']) => {
-    switch (status) {
-      case 'On Time':
-        return 'bg-success text-success-foreground';
-      case 'Delayed':
-        return 'bg-warning text-warning-foreground';
-      case 'Cancelled':
-        return 'bg-destructive text-destructive-foreground';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
+const getStatusBadgeVariant = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'on time':
+      return 'success';
+    case 'delayed':
+      return 'warning';
+    case 'cancelled':
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
+};
 
+export const RouteCard = ({ route, onClick }: RouteCardProps) => {
   return (
-    <Card 
-      className="cursor-pointer hover:shadow-md transition-shadow duration-200 border-l-4 border-l-primary"
+    <div 
+      className="card transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
       onClick={onClick}
+      style={{ borderLeft: '4px solid var(--primary)' }}
     >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Bus className="h-5 w-5 text-primary" />
-            <span className="font-bold text-lg text-primary">{route.number}</span>
-          </div>
-          <Badge className={getStatusColor(route.status)}>
+      <div className="card-content">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-xl font-semibold text-primary">{route.number}</h3>
+          <Badge variant={getStatusBadgeVariant(route.status)}>
             {route.status}
           </Badge>
         </div>
-        <h3 className="font-semibold text-foreground mb-1">{route.name}</h3>
-        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>{route.stops.length} stops</span>
+        <p className="text-muted-foreground mb-4">{route.name}</p>
+        <div className="text-sm text-muted-foreground">
+          {route.stops.length} stops • Click to view details
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

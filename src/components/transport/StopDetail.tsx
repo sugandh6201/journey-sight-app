@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Bus, Clock } from "lucide-react";
 import { Stop, Route, Arrival } from "@/data/mockData";
 
 interface StopDetailProps {
@@ -13,133 +11,114 @@ interface StopDetailProps {
 }
 
 export const StopDetail = ({ stop, routes, arrivals, onBack }: StopDetailProps) => {
-  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(Date.now());
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
     }, 30000); // Update every 30 seconds
 
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, []);
 
   const getStopArrivals = () => {
     return arrivals
       .filter(arrival => arrival.stopId === stop.id)
       .sort((a, b) => a.minutes - b.minutes)
-      .slice(0, 3); // Next 3 arrivals
+      .slice(0, 3) // Show next 3 arrivals
+      .map(arrival => {
+        const route = routes.find(r => r.id === arrival.routeId);
+        return {
+          ...arrival,
+          route
+        };
+      });
   };
 
-  const getRoute = (routeId: number) => {
-    return routes.find(route => route.id === routeId);
-  };
+  const stopRoutes = routes.filter(route => 
+    route.stops.includes(stop.id)
+  );
 
-  const getStatusColor = (status: Route['status']) => {
-    switch (status) {
-      case 'On Time':
-        return 'bg-success text-success-foreground';
-      case 'Delayed':
-        return 'bg-warning text-warning-foreground';
-      case 'Cancelled':
-        return 'bg-destructive text-destructive-foreground';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
+  const nextArrivals = getStopArrivals();
 
-  const formatCountdown = (minutes: number) => {
-    if (minutes <= 0) return "Arriving";
+  const formatTime = (minutes: number) => {
+    if (minutes <= 0) return "Due";
     if (minutes === 1) return "1 min";
     return `${minutes} mins`;
   };
 
-  const nextArrivals = getStopArrivals();
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">{stop.name}</h2>
+          <p className="text-muted-foreground">
+            Stop ID: {stop.id} • Updated: {currentTime.toLocaleTimeString()}
+          </p>
+        </div>
+        <Button variant="outline" onClick={onBack}>
           Back
         </Button>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-6 w-6 text-primary" />
-            {stop.name}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">Stop #{stop.id}</p>
-        </CardHeader>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Next Arrivals</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {nextArrivals.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">
-              No upcoming arrivals
-            </p>
-          ) : (
-            nextArrivals.map((arrival, index) => {
-              const route = getRoute(arrival.routeId);
-              if (!route) return null;
-              
-              return (
-                <div
-                  key={`${arrival.routeId}-${arrival.busId}-${index}`}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <Bus className="h-5 w-5 text-primary" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{route.number}</span>
-                        <Badge className={getStatusColor(route.status)}>
-                          {route.status}
-                        </Badge>
+
+      <div className="grid grid-cols-1 gap-6">
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Next Arrivals</h3>
+          </div>
+          <div className="card-content">
+            {nextArrivals.length > 0 ? (
+              <div className="space-y-4">
+                {nextArrivals.map((arrival, index) => (
+                  <div key={`${arrival.routeId}-${arrival.busId}`} 
+                       className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '2.5rem',
+                        height: '2.5rem',
+                        backgroundColor: 'var(--primary)',
+                        color: 'var(--primary-foreground)',
+                        borderRadius: '50%',
+                        fontSize: '0.875rem',
+                        fontWeight: '700'
+                      }}>
+                        {index + 1}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {route.name} • Bus {arrival.busId}
-                      </p>
+                      <div>
+                        <div className="font-semibold">{arrival.route?.number}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {arrival.route?.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Bus {arrival.busId}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="text-xl font-bold text-primary">
+                        {formatTime(arrival.minutes)}
+                      </div>
+                      {arrival.route && (
+                        <Badge variant="secondary">
+                          {arrival.route.status}
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2 text-primary">
-                    <Clock className="h-4 w-4" />
-                    <span className="font-bold text-lg">
-                      {formatCountdown(arrival.minutes)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Routes Serving This Stop</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {stop.routes.map((routeId) => {
-              const route = getRoute(routeId);
-              if (!route) return null;
-              
-              return (
-                <Badge key={routeId} variant="outline" className="text-primary border-primary">
-                  {route.number}
-                </Badge>
-              );
-            })}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                No upcoming arrivals
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

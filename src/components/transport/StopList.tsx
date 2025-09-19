@@ -1,6 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MapPin, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Route, Stop, Arrival } from "@/data/mockData";
 
 interface StopListProps {
@@ -12,66 +11,88 @@ interface StopListProps {
 }
 
 export const StopList = ({ route, stops, arrivals, onBack, onStopClick }: StopListProps) => {
+  const routeStops = stops.filter(stop => 
+    route.stops.includes(stop.id)
+  );
+
   const getNextArrival = (stopId: number) => {
     const stopArrivals = arrivals
       .filter(arrival => arrival.stopId === stopId && arrival.routeId === route.id)
       .sort((a, b) => a.minutes - b.minutes);
-    
     return stopArrivals[0];
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-4 mb-2">
+            <h2 className="text-2xl font-bold">{route.number}</h2>
+            <Badge variant="secondary">{route.status}</Badge>
+          </div>
+          <p className="text-muted-foreground">{route.name}</p>
+        </div>
+        <Button variant="outline" onClick={onBack}>
           Back to Routes
         </Button>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-primary">{route.number} - {route.name}</CardTitle>
-        </CardHeader>
-      </Card>
-      
-      <div className="space-y-3">
-        {stops
-          .filter(stop => route.stops.includes(stop.id))
-          .map((stop) => {
-            const nextArrival = getNextArrival(stop.id);
-            
-            return (
-              <Card 
-                key={stop.id}
-                className="cursor-pointer hover:shadow-md transition-shadow duration-200"
-                onClick={() => onStopClick(stop.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-5 w-5 text-primary" />
-                      <div>
-                        <h3 className="font-semibold">{stop.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Stop #{stop.id}
-                        </p>
-                      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        {routeStops.map((stop, index) => {
+          const nextArrival = getNextArrival(stop.id);
+          
+          return (
+            <div
+              key={stop.id}
+              className="card transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
+              onClick={() => onStopClick(stop.id)}
+            >
+              <div className="card-content">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-start gap-4">
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '2rem',
+                      height: '2rem',
+                      backgroundColor: 'var(--primary)',
+                      color: 'var(--primary-foreground)',
+                      borderRadius: '50%',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}>
+                      {index + 1}
                     </div>
-                    
-                    {nextArrival && (
-                      <div className="flex items-center gap-2 text-primary">
-                        <Clock className="h-4 w-4" />
-                        <span className="font-semibold">
+                    <div>
+                      <h3 className="font-semibold text-xl mb-2">{stop.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Stop ID: {stop.id}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div style={{ textAlign: 'right' }}>
+                    {nextArrival ? (
+                      <div>
+                        <div className="text-xl font-bold text-primary">
                           {nextArrival.minutes} min
-                        </span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Bus {nextArrival.busId}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">
+                        No arrivals
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
