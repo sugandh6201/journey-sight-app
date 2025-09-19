@@ -1,11 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RouteList } from "./RouteList";
 import { StopList } from "./StopList";
 import { StopDetail } from "./StopDetail";
-import { TransportMap } from "./TransportMap";
-import { mockRoutes, mockStops, mockArrivals, mockBuses } from "@/data/mockData";
+import { mockRoutes, mockStops, mockArrivals } from "@/data/mockData";
 
 type ViewState = 
   | { type: 'routes' }
@@ -84,36 +81,7 @@ export const Dashboard = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="routes" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="routes">Routes & Stops</TabsTrigger>
-          <TabsTrigger value="map">Live Map</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="routes" className="mt-6">
-          {renderMainContent()}
-        </TabsContent>
-        
-        <TabsContent value="map" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Live Transport Map</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Click on stop markers to see arrival information
-              </p>
-            </CardHeader>
-            <CardContent>
-              <TransportMap
-                stops={mockStops}
-                buses={mockBuses}
-                arrivals={mockArrivals}
-                routes={mockRoutes}
-                onStopClick={handleStopClick}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {renderMainContent()}
     </div>
   );
 };
